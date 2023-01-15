@@ -9,7 +9,6 @@ use React\Dns\Resolver\ResolverInterface;
 use React\EventLoop\Loop;
 use React\EventLoop\LoopInterface;
 use React\Promise;
-use React\Promise\CancellablePromiseInterface;
 use \Exception;
 
 class Factory
@@ -123,7 +122,7 @@ class Factory
     protected function resolveHost($host)
     {
         // there's no need to resolve if the host is already given as an IP address
-        if (false !== \filter_var($host, \FILTER_VALIDATE_IP)) {
+        if (@\inet_pton($host) !== false) {
             return Promise\resolve($host);
         }
 
@@ -140,7 +139,7 @@ class Factory
                 $reject(new \RuntimeException('Cancelled creating socket during DNS lookup'));
 
                 // (try to) cancel pending DNS lookup, otherwise ignoring its results
-                if ($promise instanceof CancellablePromiseInterface) {
+                if (\method_exists($promise, 'cancel')) {
                     $promise->cancel();
                 }
             }

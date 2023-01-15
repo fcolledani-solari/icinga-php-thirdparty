@@ -57,8 +57,12 @@ class ProxyConnector implements ConnectorInterface
      * @param array $httpHeaders Custom HTTP headers to be sent to the proxy.
      * @throws InvalidArgumentException if the proxy URL is invalid
      */
-    public function __construct($proxyUrl, ConnectorInterface $connector = null, array $httpHeaders = array())
-    {
+    public function __construct(
+        #[\SensitiveParameter]
+        $proxyUrl,
+        ConnectorInterface $connector = null,
+        array $httpHeaders = array()
+    ) {
         // support `http+unix://` scheme for Unix domain socket (UDS) paths
         if (preg_match('/^http\+unix:\/\/(.*?@)?(.+?)$/', $proxyUrl, $match)) {
             // rewrite URI to parse authentication from dummy host
@@ -256,11 +260,11 @@ class ProxyConnector implements ConnectorInterface
 
             // Exception trace arguments are not available on some PHP 7.4 installs
             // @codeCoverageIgnoreStart
-            foreach ($trace as &$one) {
+            foreach ($trace as $ti => $one) {
                 if (isset($one['args'])) {
-                    foreach ($one['args'] as &$arg) {
+                    foreach ($one['args'] as $ai => $arg) {
                         if ($arg instanceof \Closure) {
-                            $arg = 'Object(' . get_class($arg) . ')';
+                            $trace[$ti]['args'][$ai] = 'Object(' . get_class($arg) . ')';
                         }
                     }
                 }

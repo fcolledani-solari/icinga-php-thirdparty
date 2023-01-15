@@ -42,6 +42,14 @@ abstract class AbstractRenderer implements RendererInterface
     protected $t;
 
     /**
+     * If the input "changes" have `<ins>...</ins>` or `<del>...</del>`,
+     * which means they have been processed, then `false`. Otherwise, `true`.
+     *
+     * @var bool
+     */
+    protected $changesAreRaw = true;
+
+    /**
      * @var array array of the default options that apply to this renderer
      */
     protected static $defaultOptions = [
@@ -56,6 +64,10 @@ abstract class AbstractRenderer implements RendererInterface
         'separateBlock' => true,
         // show the (table) header
         'showHeader' => true,
+        // convert spaces/tabs into HTML codes like `<span class="ch sp"> </span>`
+        // and the frontend is responsible for rendering them with CSS.
+        // when using this, "spacesToNbsp" should be false and "tabSize" is not respected.
+        'spaceToHtmlTag' => false,
         // the frontend HTML could use CSS "white-space: pre;" to visualize consecutive whitespaces
         // but if you want to visualize them in the backend with "&nbsp;", you can set this to true
         'spacesToNbsp' => false,
@@ -168,6 +180,7 @@ abstract class AbstractRenderer implements RendererInterface
      */
     final public function render(Differ $differ): string
     {
+        $this->changesAreRaw = true;
         // the "no difference" situation may happen frequently
         return $differ->getOldNewComparison() === 0
             ? $this->getResultForIdenticals()
@@ -179,6 +192,8 @@ abstract class AbstractRenderer implements RendererInterface
      */
     final public function renderArray(array $differArray): string
     {
+        $this->changesAreRaw = false;
+
         return $this->renderArrayWorker($differArray);
     }
 
